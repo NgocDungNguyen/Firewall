@@ -94,7 +94,7 @@ export class GameEngine {
 
   _loop(timestamp) {
     const w = this.world
-    if (!w || this._paused) return
+    if (!w || this._paused || this.gs.toolboxOpen || this.gs.notebookOpen) return
 
     const dt = w.lastTimestamp ? timestamp - w.lastTimestamp : 16.667
     w.lastTimestamp = timestamp
@@ -229,6 +229,22 @@ export class GameEngine {
       else if (!this._anyOverlayOpen()) this.resume()
       soundEngine.playToolboxToggle()
       return
+    }
+
+    // ── Escape — close any open overlay ─────────────────────────────────────
+    if (e.code === 'Escape') {
+      if (this.gs.toolboxOpen) {
+        this.gs.set({ toolboxOpen: false })
+        if (!this._anyOverlayOpen()) this.resume()
+        soundEngine.playToolboxToggle()
+        return
+      }
+      if (this.gs.notebookOpen) {
+        this.gs.set({ notebookOpen: false })
+        if (!this._anyOverlayOpen()) this.resume()
+        soundEngine.playNotebookToggle()
+        return
+      }
     }
 
     // ── M — mute toggle ──────────────────────────────────────────────────────
