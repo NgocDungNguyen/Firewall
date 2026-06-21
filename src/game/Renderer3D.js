@@ -128,126 +128,155 @@ class Renderer3D {
   // ═══════════════════════════════════════════════════ ENVIRONMENT ══════════
 
   _buildEnvironment() {
-    // Floor
+    // Floor — sized to match actual playfield only
+    const floorW = (GATE_X - 0) * S + 4           // gx(0)=-48 to gx(GATE_X)=38 + padding
+    const floorD = GATE_H * S + 4                  // all lanes + padding
+    const floorCX = (gx(0) + gx(GATE_X)) / 2      // center between spawn and gate
+    const floorCZ = gz(CENTER_Z)
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(115, 62, 50, 34),
+      new THREE.PlaneGeometry(floorW, floorD, 40, 20),
       new THREE.MeshStandardMaterial({ color: 0x0d1f35, metalness: 0.1, roughness: 0.9 })
     )
     floor.rotation.x = -Math.PI / 2
-    floor.position.set(0, 0, gz(CENTER_Z))
+    floor.position.set(floorCX, 0, floorCZ)
     floor.receiveShadow = true
     this.scene.add(floor)
 
-    // Grid — visible cyan tones
-    const grid = new THREE.GridHelper(115, 30, 0x1a4080, 0x0d2040)
-    grid.position.set(0, 0.02, gz(CENTER_Z))
+    // Grid — same bounds as floor
+    const grid = new THREE.GridHelper(Math.max(floorW, floorD), 24, 0x1a4080, 0x0d2040)
+    grid.position.set(floorCX, 0.02, floorCZ)
     this.scene.add(grid)
 
-    // Lane highlight strips
+    // Lane highlight strips — only within field width
+    const laneW = (GATE_X - 0) * S + 2
     const laneMat = new THREE.MeshBasicMaterial({ color: 0x1a5090, transparent: true, opacity: 0.6 })
     for (const ly of LANE_YS) {
-      const strip = new THREE.Mesh(new THREE.PlaneGeometry(CANVAS_W * S + 2, 0.28), laneMat)
+      const strip = new THREE.Mesh(new THREE.PlaneGeometry(laneW, 0.28), laneMat)
       strip.rotation.x = -Math.PI / 2
-      strip.position.set(0, 0.03, gz(ly))
+      strip.position.set(floorCX, 0.03, gz(ly))
       this.scene.add(strip)
     }
 
     this._buildGate()
-    this._buildDecorations()
+    // _buildDecorations intentionally removed — server racks and holographic panels were confusing
   }
 
   _buildGate() {
-    const gX      = gx(GATE_X)
-    const cZ      = gz(GATE_Y + GATE_H / 2)
-    const hWorld  = GATE_H * S    // 36
-    const wWorld  = GATE_W * S    // 4
-    const group   = new THREE.Group()
+    const gX    = gx(GATE_X)
+    const zFar  = gz(GATE_Y)                  // far end of lanes  (~-16.5)
+    const zNear = gz(GATE_Y + GATE_H)         // near end of lanes (~+19.5)
+    const zMid  = (zFar + zNear) / 2          // centre
+    const zSpan = zNear - zFar                // ~36 world units
+    const ARCH_H = 16                         // gate visual height
+    const PW = 1.8, PD = 2.2                  // pillar width (X) and depth (Z)
+    const group = new THREE.Group()
 
-    // Translucent panel
-    const panel = new THREE.Mesh(
-      new THREE.BoxGeometry(wWorld, hWorld, 0.45),
-      new THREE.MeshStandardMaterial({
-        color: 0x0a1a2e, emissive: 0x0a2a4e, emissiveIntensity: 0.3,
-        metalness: 0.6, roughness: 0.4, transparent: true, opacity: 0.65,
-      })
-    )
-    panel.position.set(gX + wWorld / 2, hWorld / 2, cZ)
-    group.add(panel)
-
-    // Glowing frame pieces
+    // ── Materials ────────────────────────────────────────────────────────────
     this._gateFrameMat = new THREE.MeshStandardMaterial({
-      color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 2.5,
-      metalness: 0.9, roughness: 0.1,
+      color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: 4,
+      metalness: 1, roughness: 0,
     })
     const fm = this._gateFrameMat
 
-    const addBar = (w, h, d, px, py, pz) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), fm)
-      m.position.set(px, py, pz)
-      group.add(m)
-    }
-    addBar(wWorld + 0.7, 0.55, 0.9, gX + wWorld / 2, hWorld + 0.28, cZ)  // top
-    addBar(wWorld + 0.7, 0.55, 0.9, gX + wWorld / 2, -0.28, cZ)           // bottom
-    addBar(0.5, hWorld, 0.9, gX,                     hWorld / 2, cZ)       // left pillar
+    const structMat = new THREE.MeshStandardMaterial({
+      color: 0x0b1c2e, emissive: 0x030d18, emissiveIntensity: 0.6,
+      metalness: 0.95, roughness: 0.1,
+    })
 
-    // Scan lines
-    const slMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.12 })
-    for (let i = 0; i < 14; i++) {
-      const sl = new THREE.Mesh(new THREE.PlaneGeometry(wWorld, 0.14), slMat)
-      sl.position.set(gX + wWorld / 2, (i / 13) * hWorld, cZ + 0.25)
+    const box = (geo, mat, x, y, z) => {
+      const m = new THREE.Mesh(geo, mat)
+      m.position.set(x, y, z); m.castShadow = true; group.add(m); return m
+    }
+
+    // ═══ PILLARS at each Z edge ═══════════════════════════════════════════════
+    for (const z of [zFar, zNear]) {
+      // Main body
+      box(new THREE.BoxGeometry(PW, ARCH_H, PD), structMat, gX + PW / 2, ARCH_H / 2, z)
+      // Glowing vertical edge strips
+      box(new THREE.BoxGeometry(0.22, ARCH_H + 0.6, 0.22), fm, gX + 0.08,      ARCH_H / 2, z)
+      box(new THREE.BoxGeometry(0.22, ARCH_H + 0.6, 0.22), fm, gX + PW - 0.08, ARCH_H / 2, z)
+      // Horizontal accent rings every 3 units
+      for (let r = 2.5; r < ARCH_H; r += 3.2) {
+        box(new THREE.BoxGeometry(PW + 0.35, 0.28, PD + 0.35), fm, gX + PW / 2, r, z)
+      }
+      // Capital block at top
+      box(new THREE.BoxGeometry(PW + 1.0, 0.9, PD + 1.0), fm, gX + PW / 2, ARCH_H + 0.1, z)
+      // Wide base
+      box(new THREE.BoxGeometry(PW + 0.8, 0.55, PD + 0.8), structMat, gX + PW / 2, 0.28, z)
+    }
+
+    // ═══ TOP ARCH (spans all lanes) ═══════════════════════════════════════════
+    // Main lintel beam
+    box(new THREE.BoxGeometry(PW, 1.4, zSpan + PD), structMat, gX + PW / 2, ARCH_H + 0.7, zMid)
+    // Top glowing trim
+    box(new THREE.BoxGeometry(PW + 0.5, 0.4, zSpan + PD + 0.5), fm, gX + PW / 2, ARCH_H + 1.2, zMid)
+    // Bottom glowing trim
+    box(new THREE.BoxGeometry(PW + 0.5, 0.4, zSpan + PD + 0.5), fm, gX + PW / 2, ARCH_H + 0.0, zMid)
+
+    // ═══ FLOOR TRACKS ═════════════════════════════════════════════════════════
+    box(new THREE.BoxGeometry(0.35, 0.18, zSpan + PD), fm, gX + 0.22,      0.09, zMid)
+    box(new THREE.BoxGeometry(0.35, 0.18, zSpan + PD), fm, gX + PW - 0.22, 0.09, zMid)
+
+    // ═══ ENERGY FIELD (curtain) ════════════════════════════════════════════════
+    // Main curtain plane — perpendicular to X axis, spanning Z & Y
+    const curtain = new THREE.Mesh(
+      new THREE.PlaneGeometry(zSpan, ARCH_H),
+      new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.06, side: THREE.DoubleSide, depthWrite: false })
+    )
+    curtain.rotation.y = Math.PI / 2
+    curtain.position.set(gX + PW / 2, ARCH_H / 2, zMid)
+    group.add(curtain)
+
+    // Horizontal scan lines
+    for (let i = 0; i < 26; i++) {
+      const yy    = (i / 25) * ARCH_H
+      const alpha = i % 5 === 0 ? 0.22 : 0.06
+      const sl = new THREE.Mesh(
+        new THREE.PlaneGeometry(zSpan, 0.13),
+        new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: alpha, side: THREE.DoubleSide, depthWrite: false })
+      )
+      sl.rotation.y = Math.PI / 2
+      sl.position.set(gX + PW / 2 + 0.02, yy, zMid)
       group.add(sl)
     }
 
-    // Label
+    // Vertical divider bars within the gate opening
+    for (let i = 1; i <= 6; i++) {
+      const z = zFar + PD / 2 + (i / 7) * (zSpan - PD)
+      const div = new THREE.Mesh(
+        new THREE.BoxGeometry(0.07, ARCH_H, 0.07),
+        new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.15, depthWrite: false })
+      )
+      div.position.set(gX + PW / 2, ARCH_H / 2, z)
+      group.add(div)
+    }
+
+    // ═══ HEADER SIGN ══════════════════════════════════════════════════════════
     const lc = document.createElement('canvas')
-    lc.width = 256; lc.height = 80
+    lc.width = 768; lc.height = 128
     const lctx = lc.getContext('2d')
+    lctx.fillStyle = '#020c18'
+    lctx.fillRect(0, 0, 768, 128)
+    lctx.strokeStyle = '#22d3ee'; lctx.lineWidth = 4
+    lctx.strokeRect(4, 4, 760, 120)
+    lctx.lineWidth = 1.5
+    lctx.strokeRect(10, 10, 748, 108)
     lctx.fillStyle = '#22d3ee'
+    lctx.shadowColor = '#22d3ee'; lctx.shadowBlur = 22
+    lctx.font = 'bold 52px "Share Tech Mono", monospace'
+    lctx.textAlign = 'center'; lctx.textBaseline = 'middle'
+    lctx.fillText('⚡ FIREWALL CHECKPOINT', 384, 44)
     lctx.font = 'bold 28px "Share Tech Mono", monospace'
-    lctx.textAlign = 'center'
-    lctx.textBaseline = 'middle'
-    lctx.fillText('FIREWALL', 128, 28)
-    lctx.fillText('GATE', 128, 56)
-    const labelMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(wWorld + 1, 3.2),
-      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(lc), transparent: true })
+    lctx.fillStyle = '#88eeff'; lctx.shadowBlur = 10
+    lctx.fillText('THREAT DETECTION ACTIVE • ALL FILES SCANNED', 384, 94)
+    const sign = new THREE.Mesh(
+      new THREE.PlaneGeometry(16, 3.2),
+      new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(lc), transparent: true, depthWrite: false })
     )
-    labelMesh.position.set(gX + wWorld / 2, hWorld + 3.5, cZ)
-    group.add(labelMesh)
+    sign.position.set(gX + PW / 2, ARCH_H + 5.5, zMid)
+    group.add(sign)
 
     this.scene.add(group)
-  }
-
-  _buildDecorations() {
-    const rackMat = new THREE.MeshStandardMaterial({ color: 0x0a1525, metalness: 0.7, roughness: 0.3 })
-    const ledMats = [
-      new THREE.MeshBasicMaterial({ color: 0x22d3ee }),
-      new THREE.MeshBasicMaterial({ color: 0x34d399 }),
-      new THREE.MeshBasicMaterial({ color: 0xf59e0b }),
-    ]
-    const topZ = gz(LANE_YS[0] - 55)
-
-    for (let i = 0; i < 4; i++) {
-      const rx = gx(120 + i * 390)
-      const rack = new THREE.Mesh(new THREE.BoxGeometry(1.4, 10, 1.0), rackMat)
-      rack.position.set(rx, 5, topZ)
-      rack.castShadow = true
-      this.scene.add(rack)
-      for (let j = 0; j < 5; j++) {
-        const led = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.18, 0.18), ledMats[(i + j) % 3])
-        led.position.set(rx - 0.52, 1.5 + j * 1.5, topZ - 0.52)
-        this.scene.add(led)
-      }
-    }
-
-    // Holographic background panels
-    const holMat = new THREE.MeshBasicMaterial({ color: 0x0a2a5a, transparent: true, opacity: 0.18, side: THREE.DoubleSide })
-    for (let i = 0; i < 3; i++) {
-      const p = new THREE.Mesh(new THREE.PlaneGeometry(9, 5.5), holMat)
-      p.position.set(gx(250 + i * 500), 9 + i * 2, topZ - 2)
-      p.rotation.y = (i - 1) * 0.12
-      this.scene.add(p)
-    }
   }
 
   // ═══════════════════════════════════════════════════ FILE TEXTURE ══════════
@@ -364,12 +393,15 @@ class Renderer3D {
     const group = new THREE.Group()
     const c3    = new THREE.Color(playerColor)
 
-    // ── Materials (lighter, visible colours) ──────────────────────────────────
+    // ── Materials — coat colour differs per player ─────────────────────────────
     const mat = (hex, opts = {}) => new THREE.MeshStandardMaterial({ color: hex, metalness: 0.08, roughness: 0.85, ...opts })
 
-    // Trenchcoat — visible medium-dark slate blue (not near-black)
-    const coat   = mat(0x3d5a7a, { emissive: 0x1a2a3a, emissiveIntensity: 0.2 })
-    const coatDk = mat(0x2d4260)     // darker coat accents
+    // P1 = deep navy blue detective coat; P2 = dark amber-brown field coat
+    const isP1    = playerId === 'p1'
+    const coatHex = isP1 ? 0x1e3f6e : 0x5a3210
+    const coatDkH = isP1 ? 0x142a50 : 0x3a2008
+    const coat    = mat(coatHex, { emissive: coatHex, emissiveIntensity: 0.2 })
+    const coatDk  = mat(coatDkH)
     const skin   = mat(0xf5c88a, { metalness: 0, roughness: 1 })
     const hat    = mat(0x223344, { metalness: 0.2, emissive: 0x0a1825, emissiveIntensity: 0.3 })
     const pant   = mat(0x2a3f55)     // visible dark-blue trousers
