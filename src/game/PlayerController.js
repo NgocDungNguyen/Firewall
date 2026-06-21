@@ -11,13 +11,21 @@ export function createPlayer(id, x, y, color, name) {
 export function updatePlayers(world, dt) {
   const norm = dt / 16.667
   for (const p of world.players) {
-    const k = world.keys
+    const k  = world.keys
+    const m  = world.mobileMove   // touch input (P1 only)
     const kb = world.keybindings[p.id]
     let dx = 0, dy = 0
     if (k.has(kb.left))  dx -= 1
     if (k.has(kb.right)) dx += 1
     if (k.has(kb.up))    dy -= 1
     if (k.has(kb.down))  dy += 1
+    // Mobile d-pad (only applies to P1 in single-player)
+    if (m && p.id === 'p1') {
+      if (m.left)  dx = Math.max(-1, dx - 1)
+      if (m.right) dx = Math.min( 1, dx + 1)
+      if (m.up)    dy = Math.max(-1, dy - 1)
+      if (m.down)  dy = Math.min( 1, dy + 1)
+    }
     if (dx !== 0 && dy !== 0) { dx *= 0.707; dy *= 0.707 }
     p.vx = dx * PLAYER_SPEED * norm
     p.vy = dy * PLAYER_SPEED * norm

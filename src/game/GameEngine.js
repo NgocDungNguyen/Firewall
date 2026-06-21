@@ -8,6 +8,7 @@ import { resolveAction, calcRoundScore, calcHPBonus } from './ScoreEngine.js'
 import { soundEngine } from '../audio/SoundEngine.js'
 import { activityLog } from '../data/activityLog.js'
 import * as Renderer from './Renderer.js'
+import { mobileControls } from './MobileControls.js'
 
 export class GameEngine {
   constructor(gameState, modalManager) {
@@ -45,6 +46,7 @@ export class GameEngine {
     this.ctx      = null          // 3D renderer manages canvas — no 2D ctx needed
     Renderer.initScene(canvas)
     this.world    = this._buildWorld(levelId, playerCount)
+    mobileControls.init(this.world, this)
     this._actionPoints = 0
     this._paused       = false
     this._lastTickSec  = -1
@@ -65,6 +67,7 @@ export class GameEngine {
     window.removeEventListener('keyup',   this._keyUp)
     Renderer.disposeRound()
     Renderer.hideCountdown()
+    mobileControls.hide()
     this.gs.set({ openModals: [], notebookOpen: false, toolboxOpen: false })
     this.modal.closeAll()
     this._paused = false

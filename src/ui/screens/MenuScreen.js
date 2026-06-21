@@ -37,6 +37,13 @@ export class MenuScreen {
   }
 
   _init() {
+    const onMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0) && window.innerWidth < 1200
+    if (onMobile) {
+      document.getElementById('btn-2p')?.classList.add('hidden')
+      document.getElementById('controls-config')?.classList.add('hidden')
+      document.getElementById('mobile-menu-hint')?.classList.remove('hidden')
+    }
+
     const btn1p  = document.getElementById('btn-1p')
     const btn2p  = document.getElementById('btn-2p')
     const p2ctrl = document.getElementById('p2-controls')

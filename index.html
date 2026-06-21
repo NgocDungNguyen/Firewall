@@ -25,6 +25,13 @@
 </head>
 <body class="select-none">
 
+  <!-- ── Portrait orientation lock overlay ─────────────── -->
+  <div id="portrait-warning" class="portrait-warning" aria-hidden="true">
+    <div class="portrait-warning__icon">📱</div>
+    <div class="portrait-warning__text">ROTATE DEVICE TO PLAY</div>
+    <div class="portrait-warning__sub">This game requires landscape mode</div>
+  </div>
+
   <!-- ═══════════════════════════════════════════ MENU SCREEN -->
   <div id="screen-menu" class="screen active" style="background:#030712;">
     <div class="screen-bg"></div>
@@ -33,6 +40,9 @@
         <div class="text-xs tracking-[0.4em] text-cyan-400 font-mono mb-2">SECURITY DIVISION // SECTOR 7</div>
         <h1 class="game-title">FIREWALL<br>GUARD DETECTOR</h1>
         <div class="text-xs tracking-widest text-gray-400 font-mono mt-2">PROTECT THE NETWORK. INSPECT EVERY FILE.</div>
+      </div>
+      <div id="mobile-menu-hint" class="mobile-only mobile-menu-hint hidden">
+        📱 Mobile: Single Player · Use on-screen controls
       </div>
       <div class="flex gap-4 mt-2">
         <button id="btn-1p" class="menu-btn menu-btn--active"><span class="text-xl">👤</span><span>SINGLE PLAYER</span></button>
@@ -177,7 +187,44 @@
     <div id="wave-countdown-3d" class="wc3d wc3d--hidden">
       <div id="wc3d-title" class="wc3d__title"></div>
       <div id="wc3d-number" class="wc3d__number"></div>
-      <div class="wc3d__hint">PRESS SPACE TO SKIP WAIT</div>
+      <div class="wc3d__hint wc3d__hint--desktop">PRESS SPACE TO SKIP WAIT</div>
+      <div class="wc3d__hint wc3d__hint--mobile">TAP HERE TO SKIP WAIT</div>
+    </div>
+
+    <!-- Mobile game controls z-55 (hidden until JS detects mobile) -->
+    <div id="mobile-controls" class="mobile-controls mobile-controls--hidden">
+
+      <!-- Left: D-pad -->
+      <div class="mobile-dpad">
+        <div class="mobile-dpad__row">
+          <button id="mobile-dpad-up"    class="mobile-dpad__btn">▲</button>
+        </div>
+        <div class="mobile-dpad__row mobile-dpad__middle">
+          <button id="mobile-dpad-left"  class="mobile-dpad__btn">◀</button>
+          <div    class="mobile-dpad__center"></div>
+          <button id="mobile-dpad-right" class="mobile-dpad__btn">▶</button>
+        </div>
+        <div class="mobile-dpad__row">
+          <button id="mobile-dpad-down"  class="mobile-dpad__btn">▼</button>
+        </div>
+      </div>
+
+      <!-- Right: action zone -->
+      <div class="mobile-actions">
+        <!-- Modal action buttons (shown when a dossier is open) -->
+        <div id="mobile-modal-btns" class="mobile-modal-btns">
+          <button id="mobile-btn-pass" class="mobile-btn mobile-btn--pass">✅ CLEAR</button>
+          <button id="mobile-btn-quar" class="mobile-btn mobile-btn--quar">⚠️ QUAR</button>
+          <button id="mobile-btn-elim" class="mobile-btn mobile-btn--elim">❌ ELIM</button>
+        </div>
+        <!-- Normal action buttons -->
+        <div class="mobile-actions__row">
+          <button id="mobile-btn-skip"    class="mobile-btn mobile-btn--sm">⏭</button>
+          <button id="mobile-btn-notes"   class="mobile-btn mobile-btn--sm">📓</button>
+          <button id="mobile-btn-tools"   class="mobile-btn mobile-btn--sm">🔧</button>
+        </div>
+        <button id="mobile-btn-inspect" class="mobile-btn mobile-btn--inspect">🔍 INSPECT</button>
+      </div>
     </div>
 
     <!-- Investigator Notebook z-60 -->
