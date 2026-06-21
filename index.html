@@ -15,7 +15,8 @@
     "imports": {
       "firebase/app":      "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js",
       "firebase/database": "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js",
-      "firebase/analytics":"https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js"
+      "firebase/analytics":"https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js",
+      "three":             "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js"
     }
   }
   </script>
@@ -171,6 +172,13 @@
         </div><!-- /toolbox__body -->
       </div><!-- /toolbox -->
     </div><!-- /toolbox-overlay -->
+
+    <!-- Wave countdown 3D overlay z-45 -->
+    <div id="wave-countdown-3d" class="wc3d wc3d--hidden">
+      <div id="wc3d-title" class="wc3d__title"></div>
+      <div id="wc3d-number" class="wc3d__number"></div>
+      <div class="wc3d__hint">PRESS SPACE TO SKIP WAIT</div>
+    </div>
 
     <!-- Investigator Notebook z-60 -->
     <div id="notebook-panel" class="notebook-panel notebook-panel--hidden">

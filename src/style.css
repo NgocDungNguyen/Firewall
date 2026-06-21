@@ -468,10 +468,47 @@ kbd {
 }
 .hud-mute-btn:hover { border-color: #22d3ee; color: #22d3ee; }
 
-/* ── Canvas ─────────────────────────────────────────────────── */
+/* ── Canvas (Three.js WebGL target) ─────────────────────────── */
 #game-canvas {
-  display: block; width: 100vw; height: 100vh;
+  display: block;
   position: absolute; inset: 0;
+  width: 100% !important; height: 100% !important;
+}
+
+/* ── Wave countdown overlay (replaces 2D canvas text) ────────── */
+.wc3d {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 45;
+  text-align: center;
+  padding: 2rem 3rem;
+  background: rgba(2, 6, 18, 0.82);
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+.wc3d--hidden { display: none; }
+.wc3d__title {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  letter-spacing: 0.2em;
+  color: #22d3ee;
+  margin-bottom: 0.5rem;
+}
+.wc3d__number {
+  font-family: var(--font-mono);
+  font-size: 5rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+.wc3d__hint {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: #4b5563;
 }
 
 /* ══════════════════════════════════════════════════════════════

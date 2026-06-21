@@ -1,4 +1,4 @@
-import { CANVAS_W, CANVAS_H, DEFAULT_KEYS, SCORING, PLAYER_COLORS, PLAYER_NAMES } from './constants.js'
+import { DEFAULT_KEYS, SCORING, PLAYER_COLORS, PLAYER_NAMES } from './constants.js'
 import { LEVELS } from '../data/levels.js'
 import { updatePlayers, createPlayer } from './PlayerController.js'
 import { updateParticles } from './ParticleSystem.js'
@@ -41,10 +41,9 @@ export class GameEngine {
 
   start(levelId, playerCount) {
     const canvas  = document.getElementById('game-canvas')
-    canvas.width  = CANVAS_W
-    canvas.height = CANVAS_H
     this.canvas   = canvas
-    this.ctx      = canvas.getContext('2d')
+    this.ctx      = null          // 3D renderer manages canvas — no 2D ctx needed
+    Renderer.initScene(canvas)
     this.world    = this._buildWorld(levelId, playerCount)
     this._actionPoints = 0
     this._paused       = false
@@ -64,7 +63,8 @@ export class GameEngine {
     clearInterval(this.timerInterval)
     window.removeEventListener('keydown', this._keyDown)
     window.removeEventListener('keyup',   this._keyUp)
-    if (this.ctx) this.ctx.clearRect(0, 0, CANVAS_W, CANVAS_H)
+    Renderer.disposeRound()
+    Renderer.hideCountdown()
     this.gs.set({ openModals: [], notebookOpen: false, toolboxOpen: false })
     this.modal.closeAll()
     this._paused = false
@@ -76,7 +76,7 @@ export class GameEngine {
     this._paused = true
     if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null }
     clearInterval(this.timerInterval)
-    if (this.ctx && this.world) Renderer.drawPauseOverlay(this.ctx)
+    Renderer.drawPauseOverlay()
   }
 
   resume() {
@@ -124,13 +124,13 @@ export class GameEngine {
       else if (secsLeft <= 10 && secsLeft > 0) soundEngine.playCountdownTick()
     }
 
-    Renderer.clear(this.ctx)
-    Renderer.drawBackground(this.ctx)
-    Renderer.drawGate(this.ctx, this.gs.firewallHP)
-    Renderer.drawParticles(this.ctx, w.particles)
-    Renderer.drawPlayers(this.ctx, w.players)
-    Renderer.drawInteractPrompts(this.ctx, w)
-    if (showCountdown) Renderer.drawWaveCountdown(this.ctx, secsLeft, w.waveIndex + 1, w.levelDef.wavesPerRound)
+    // ── 3D scene sync + render ────────────────────────────────────────────────
+    Renderer.syncParticles(w.particles, w)
+    Renderer.syncPlayers(w.players)
+    Renderer.updateGate(this.gs.firewallHP)
+    if (showCountdown) Renderer.showCountdown(secsLeft, w.waveIndex + 1, w.levelDef.wavesPerRound)
+    else               Renderer.hideCountdown()
+    Renderer.renderFrame()
 
     this.rafId = requestAnimationFrame(ts => this._loop(ts))
   }

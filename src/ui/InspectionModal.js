@@ -1,5 +1,6 @@
 import { PLAYER_NAMES } from '../game/constants.js'
 import { soundEngine }  from '../audio/SoundEngine.js'
+import * as Renderer    from '../game/Renderer.js'
 
 function _kLabel(code) {
   if (code.startsWith('Key'))    return code.slice(3)
@@ -34,7 +35,11 @@ export class InspectionModal {
     this._scale = this._canvas.getBoundingClientRect().width / 1920
   }
 
-  _canvasToCSS(x, y) { return { x: x * this._scale, y: y * this._scale } }
+  _canvasToCSS(x, y) {
+    const proj = Renderer.projectGameToScreen(x, y)
+    if (proj) return proj
+    return { x: x * this._scale, y: y * this._scale }
+  }
 
   open(particle, player, canvas, onAction) {
     this._setup(canvas)
