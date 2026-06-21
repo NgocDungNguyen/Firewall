@@ -5,7 +5,6 @@ export class BriefingScreen {
   constructor(gameState, engine) {
     this.gs     = gameState
     this.engine = engine
-    this._timer = null
     this._init()
   }
 
@@ -17,31 +16,70 @@ export class BriefingScreen {
   }
 
   _populate() {
-    clearInterval(this._timer)
     const level = LEVELS.find(l => l.id === this.gs.level) || LEVELS[0]
+    const round = this.gs.round
 
-    document.getElementById('briefing-round-label').textContent  = `ROUND ${this.gs.round}`
-    document.getElementById('briefing-level-name').textContent   = `LEVEL ${level.id}: ${level.name}`
+    document.getElementById('briefing-round-label').textContent = `ROUND ${round}  ·  LEVEL ${level.id}`
+    document.getElementById('briefing-level-name').textContent  = level.name
 
-    const ul = document.getElementById('briefing-bullets')
-    ul.innerHTML = ''
-    for (const b of level.briefingBullets) {
-      const li = document.createElement('li')
-      if (b.threat) li.classList.add('threat')
-      li.textContent = b.text
-      ul.appendChild(li)
-    }
+    // Build threat cards
+    const allThreats = this._buildThreatsForLevel(level)
+    const cardsEl    = document.getElementById('briefing-threat-cards')
+    cardsEl.innerHTML = allThreats.map(t => `
+      <div class="threat-card" style="border-color:${t.color}40;background:${t.color}08">
+        <div class="threat-card__header" style="color:${t.color}">
+          <span style="font-size:1.5rem">${t.icon}</span>
+          <div>
+            <div class="threat-card__name">${t.name}</div>
+            ${t.damage > 0
+              ? `<div class="threat-card__damage">⚠ −${t.damage} HP if it passes</div>`
+              : `<div class="threat-card__safe">✓ Always safe to PASS</div>`}
+          </div>
+        </div>
+        <ul class="threat-card__clues">
+          ${t.clues.map(c => `<li>${c}</li>`).join('')}
+        </ul>
+        ${t.example ? `<div class="threat-card__example">${t.example}</div>` : ''}
+        ${t.damage > 0 ? `<div class="threat-card__action" style="color:${t.color}">→ ${t.action}</div>` : ''}
+      </div>
+    `).join('')
 
+    // Wave info bar
+    document.getElementById('briefing-wave-info').innerHTML = `
+      <span>📦 ${level.wavesPerRound} waves of 3 files each</span>
+      <span>⏳ New wave every <strong>${level.spawnIntervalFrames >= 1800 ? '30' : '15'} seconds</strong></span>
+      <span>SPACE to skip wait</span>
+    `
+
+    // HP pips
     this._renderHP(this.gs.firewallHP)
 
-    let count = 5
-    const cd = document.getElementById('briefing-countdown')
-    cd.textContent = count
-    this._timer = setInterval(() => {
-      count--
-      cd.textContent = count
-      if (count <= 0) { clearInterval(this._timer); this._launch() }
-    }, 1000)
+    // Update skip button
+    document.getElementById('btn-briefing-skip').textContent = '▶ DEPLOY TO CHECKPOINT'
+  }
+
+  _buildThreatsForLevel(level) {
+    // Start with threats defined in this level, plus always include clean
+    const defined = level.threats || []
+    // Also pull in threats from prior levels that are still in the pool
+    const all = []
+
+    // Always show clean first
+    all.push({
+      type: 'clean', icon: '📄', color: '#22c55e', name: 'Clean File', damage: 0,
+      clues: [
+        'Normal small file size (KB range)',
+        'Single extension: .txt, .jpg, .pdf, .docx',
+        'IP from home/school network: 192.168.x.x or 10.x.x.x',
+        'Signature is exactly 64 characters, all letters a-f and numbers 0-9',
+      ],
+      action: 'PASS',
+      example: '',
+    })
+
+    for (const t of defined) { all.push(t) }
+
+    return all
   }
 
   _renderHP(hp) {
@@ -55,7 +93,6 @@ export class BriefingScreen {
   }
 
   _launch() {
-    clearInterval(this._timer)
     this.gs.resetForNewRound()
     this.gs.set({ phase: 'playing' })
     this.engine.start(this.gs.level, this.gs.playerCount)
