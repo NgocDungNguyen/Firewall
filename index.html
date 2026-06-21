@@ -5,19 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Firewall Guard Detector</title>
   <link rel="icon" type="image/svg+xml" href="public/favicon.svg" />
-
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Share+Tech+Mono&family=Caveat:wght@600&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Game CSS -->
   <link rel="stylesheet" href="src/style.css" />
-
-  <!-- Firebase importmap (CDN ES modules, no build step) -->
   <script type="importmap">
   {
     "imports": {
@@ -27,18 +19,12 @@
     }
   }
   </script>
-
-  <!-- Game entry point -->
   <script type="module" src="src/main.js"></script>
-
-  <style>
-    html, body { width:100%; height:100%; overflow:hidden; }
-    body { background:#030712; color:#fff; }
-  </style>
+  <style>html,body{width:100%;height:100%;overflow:hidden;background:#030712;color:#fff}</style>
 </head>
 <body class="select-none">
 
-  <!-- ═══════════════════════════════════════════════════ MENU SCREEN -->
+  <!-- ═══════════════════════════════════════════ MENU SCREEN -->
   <div id="screen-menu" class="screen active" style="background:#030712;">
     <div class="screen-bg"></div>
     <div class="screen-scroll relative z-10">
@@ -47,18 +33,10 @@
         <h1 class="game-title">FIREWALL<br>GUARD DETECTOR</h1>
         <div class="text-xs tracking-widest text-gray-400 font-mono mt-2">PROTECT THE NETWORK. INSPECT EVERY FILE.</div>
       </div>
-
       <div class="flex gap-4 mt-2">
-        <button id="btn-1p" class="menu-btn menu-btn--active">
-          <span class="text-xl">👤</span>
-          <span>SINGLE PLAYER</span>
-        </button>
-        <button id="btn-2p" class="menu-btn">
-          <span class="text-xl">👥</span>
-          <span>CO-OP  2P</span>
-        </button>
+        <button id="btn-1p" class="menu-btn menu-btn--active"><span class="text-xl">👤</span><span>SINGLE PLAYER</span></button>
+        <button id="btn-2p" class="menu-btn"><span class="text-xl">👥</span><span>CO-OP  2P</span></button>
       </div>
-
       <div id="controls-config" class="controls-panel">
         <div class="text-xs text-cyan-400 tracking-widest font-mono mb-3 text-center">— CONTROL BINDINGS —</div>
         <div class="grid grid-cols-2 gap-4">
@@ -80,53 +58,38 @@
           </div>
         </div>
         <div class="text-center mt-3 text-xs text-gray-500 font-mono">
-          SPACE — Skip Wait &nbsp;·&nbsp; TAB — Toggle Notebook (pauses game)
+          SPACE — Skip Wait &nbsp;·&nbsp; TAB — Notes (pauses) &nbsp;·&nbsp; T — Toolkit (pauses) &nbsp;·&nbsp; M — Mute
         </div>
       </div>
-
       <button id="btn-start" class="start-btn">▶ DEPLOY TO CHECKPOINT</button>
       <button id="btn-leaderboard" class="text-xs text-gray-500 hover:text-cyan-400 font-mono tracking-widest transition-colors pb-4">VIEW LEADERBOARD</button>
     </div>
   </div>
 
-  <!-- ═════════════════════════════════════════ PRE-ROUND BRIEFING -->
+  <!-- ═══════════════════════════════════════ PRE-ROUND BRIEFING -->
   <div id="screen-briefing" class="screen" style="background:#030712;">
     <div class="screen-bg"></div>
     <div class="screen-scroll relative z-10">
-
       <div class="briefing-header">
         <div class="briefing-header__sub">THREAT INTELLIGENCE BRIEFING</div>
         <div id="briefing-round-label" class="text-xs font-mono text-gray-400 mb-1">ROUND 1 · LEVEL 1</div>
         <div id="briefing-level-name" class="briefing-header__title">CORRUPTED FILES</div>
       </div>
-
-      <!-- Threat cards -->
       <div id="briefing-threat-cards" class="threat-cards-grid"></div>
-
-      <!-- Wave info bar -->
       <div id="briefing-wave-info" class="briefing-wave-info"></div>
-
-      <!-- HP row -->
-      <div class="briefing-hp-row">
-        <span>FIREWALL HP</span>
-        <div id="briefing-hp" class="hp-pips"></div>
-      </div>
-
+      <div class="briefing-hp-row"><span>FIREWALL HP</span><div id="briefing-hp" class="hp-pips"></div></div>
       <button id="btn-briefing-skip" class="start-btn" style="max-width:340px;">▶ DEPLOY TO CHECKPOINT</button>
     </div>
   </div>
 
-  <!-- ════════════════════════════════════════════════ GAME SCREEN -->
+  <!-- ═════════════════════════════════════════════ GAME SCREEN -->
   <div id="screen-game" class="screen relative">
     <canvas id="game-canvas"></canvas>
 
     <!-- HUD z-50 -->
     <div id="hud">
       <div id="hud-left" class="hud-panel hud-panel--left">
-        <div>
-          <div class="hud-label">FIREWALL HP</div>
-          <div id="hud-hp" class="hp-pips"></div>
-        </div>
+        <div><div class="hud-label">FIREWALL HP</div><div id="hud-hp" class="hp-pips"></div></div>
       </div>
       <div id="hud-center" class="hud-panel hud-panel--center">
         <div><div class="hud-label">WAVE</div><div id="hud-wave" class="hud-value">1 / 4</div></div>
@@ -136,11 +99,84 @@
       <div id="hud-right" class="hud-panel hud-panel--right">
         <div><div class="hud-label" style="text-align:right">P1 SCORE</div><div id="hud-score-p1" class="hud-value text-blue-400" style="text-align:right">0</div></div>
         <div id="hud-score-p2-block" class="hidden"><div class="hud-label" style="text-align:right">P2 SCORE</div><div id="hud-score-p2" class="hud-value text-amber-400" style="text-align:right">0</div></div>
+        <button id="btn-mute" class="hud-mute-btn" title="Toggle sound [M]">🔊</button>
       </div>
     </div>
 
     <!-- Inspection modals z-40 -->
     <div id="modal-container"></div>
+
+    <!-- Analyst Toolkit z-70 -->
+    <div id="toolbox-overlay" class="toolbox-overlay toolbox-overlay--hidden">
+      <div class="toolbox">
+        <div class="toolbox__bar">
+          <span class="toolbox__title">🔧 ANALYST TOOLKIT</span>
+          <span class="toolbox__hint">[ T ] CLOSE  &nbsp;|&nbsp;  [ M ] MUTE</span>
+        </div>
+        <div class="toolbox__tabs">
+          <button class="toolbox__tab toolbox__tab--active" data-tool="ip">🌐 IP LOOKUP</button>
+          <button class="toolbox__tab" data-tool="evidence">🔍 EVIDENCE</button>
+          <button class="toolbox__tab" data-tool="log">📋 CASE LOG</button>
+          <button class="toolbox__tab" data-tool="guide">🛡️ THREAT GUIDE</button>
+        </div>
+        <div class="toolbox__body">
+
+          <!-- ── IP LOOKUP ─────────────────────────────────── -->
+          <div id="tool-ip" class="tool-panel tool-panel--active">
+            <div class="tool-row">
+              <input id="ip-input" class="tool-input" type="text" placeholder="Enter IP address (e.g. 185.44.212.7)" maxlength="39" spellcheck="false" autocomplete="off" />
+              <button id="btn-ip-lookup" class="tool-btn">▶ LOOKUP</button>
+            </div>
+            <div id="ip-result" class="tool-result"></div>
+            <div class="tool-quickref">
+              <div class="tool-quickref__title">REFERENCE — TRUSTED PRIVATE RANGES</div>
+              <div>192.168.x.x — Home / school router network</div>
+              <div>10.x.x.x — School or company intranet</div>
+              <div>172.16–31.x.x — Private server / lab network</div>
+              <div class="tool-quickref__title" style="margin-top:0.5rem">SUSPICIOUS RANGES</div>
+              <div>185.x.x.x — Often bulletproof hosting or Tor nodes</div>
+              <div>203.x.x.x — Asia Pacific commercial / unverified</div>
+              <div>91.x.x.x — Eastern Europe, proxy networks</div>
+            </div>
+          </div>
+
+          <!-- ── EVIDENCE ANALYZER ─────────────────────────── -->
+          <div id="tool-evidence" class="tool-panel">
+            <div class="tool-section">
+              <div class="tool-section__label">HASH / SIGNATURE VALIDATOR</div>
+              <div class="tool-section__hint">Valid SHA-256: exactly 64 chars using only 0-9 and a-f</div>
+              <div class="tool-row">
+                <input id="hash-input" class="tool-input" type="text" placeholder="Paste security hash from dossier…" maxlength="80" spellcheck="false" autocomplete="off" />
+                <button id="btn-hash-check" class="tool-btn">▶ VALIDATE</button>
+              </div>
+              <div id="hash-result" class="tool-result"></div>
+            </div>
+            <div class="tool-section" style="margin-top:0.75rem;border-top:1px solid #1f2937;padding-top:0.75rem">
+              <div class="tool-section__label">FILE EXTENSION DECODER</div>
+              <div class="tool-section__hint">Paste the EXTENSION field from the dossier (e.g. .jpg.exe)</div>
+              <div class="tool-row">
+                <input id="ext-input" class="tool-input" type="text" placeholder=".pdf.exe  or  .docx  or  .dll" maxlength="40" spellcheck="false" autocomplete="off" />
+                <button id="btn-ext-check" class="tool-btn">▶ DECODE</button>
+              </div>
+              <div id="ext-result" class="tool-result"></div>
+            </div>
+          </div>
+
+          <!-- ── CASE LOG ──────────────────────────────────── -->
+          <div id="tool-log" class="tool-panel">
+            <div id="log-entries" class="log-entries">
+              <div class="log-empty">No files processed yet this round.</div>
+            </div>
+          </div>
+
+          <!-- ── THREAT GUIDE ──────────────────────────────── -->
+          <div id="tool-guide" class="tool-panel">
+            <div id="guide-content" class="guide-content"></div>
+          </div>
+
+        </div><!-- /toolbox__body -->
+      </div><!-- /toolbox -->
+    </div><!-- /toolbox-overlay -->
 
     <!-- Investigator Notebook z-60 -->
     <div id="notebook-panel" class="notebook-panel notebook-panel--hidden">
@@ -152,7 +188,7 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════ RESULTS SCREEN -->
+  <!-- ═══════════════════════════════════════════ RESULTS SCREEN -->
   <div id="screen-results" class="screen" style="background:#030712;">
     <div class="screen-scroll">
       <div class="results-card">
@@ -168,7 +204,7 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════ GAME OVER SCREEN -->
+  <!-- ══════════════════════════════════════════ GAME OVER SCREEN -->
   <div id="screen-gameover" class="screen" style="background:#030712;">
     <div class="screen-scroll">
       <div class="gameover-card">
@@ -202,9 +238,7 @@
         </div>
         <table id="leaderboard-table" class="leaderboard-table">
           <thead><tr><th>#</th><th>CODENAME</th><th>SCORE</th><th>LEVEL</th></tr></thead>
-          <tbody id="leaderboard-body">
-            <tr><td colspan="4" class="text-center text-gray-500 font-mono py-4">Loading...</td></tr>
-          </tbody>
+          <tbody id="leaderboard-body"><tr><td colspan="4" class="text-center text-gray-500 font-mono py-4">Loading...</td></tr></tbody>
         </table>
       </div>
       <button id="btn-lb-menu" class="text-xs text-gray-500 hover:text-gray-300 font-mono transition-colors pb-4">← RETURN TO BASE</button>

@@ -13,6 +13,7 @@ class GameState extends EventTarget {
     this.waveDisplay    = { current: 0, total: 0 }
     this.openModals     = []
     this.notebookOpen   = false
+    this.toolboxOpen    = false
     this.playerCount    = 1
     this.keybindings    = structuredClone(DEFAULT_KEYS)
     this.hpLostThisRound= 0
