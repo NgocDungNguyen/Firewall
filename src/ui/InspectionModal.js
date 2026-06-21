@@ -1,6 +1,14 @@
 import { PLAYER_NAMES } from '../game/constants.js'
 import { soundEngine }  from '../audio/SoundEngine.js'
 
+function _kLabel(code) {
+  if (code.startsWith('Key'))    return code.slice(3)
+  if (code.startsWith('Digit'))  return code.slice(5)
+  if (code.startsWith('Numpad')) return 'NUM' + code.slice(6)
+  const MAP = { ArrowUp:'↑', ArrowDown:'↓', ArrowLeft:'←', ArrowRight:'→', Enter:'ENT', Space:'SPC' }
+  return MAP[code] || code
+}
+
 export class InspectionModal {
   constructor(gameState) {
     this.gs        = gameState
@@ -51,6 +59,10 @@ export class InspectionModal {
 
     const qLeft     = this.gs.quarantineLeft
     const qDisabled = qLeft <= 0 ? 'dossier__btn--disabled' : ''
+    const kb        = this.gs.keybindings?.[player.id] ?? {}
+    const kPass     = _kLabel(kb.pass       ?? 'Digit1')
+    const kQuar     = _kLabel(kb.quarantine ?? 'Digit2')
+    const kElim     = _kLabel(kb.eliminate  ?? 'Digit3')
 
     el.innerHTML = `
       <div class="dossier__header">
@@ -72,17 +84,17 @@ export class InspectionModal {
         <button class="dossier__btn dossier__btn--pass" data-action="pass">
           <span class="dossier__btn-icon">✅</span>
           <span>CLEAR</span>
-          <span class="dossier__hotkey">${player.id === 'p1' ? '1' : 'NUM1'}</span>
+          <span class="dossier__hotkey">${kPass}</span>
         </button>
         <button class="dossier__btn dossier__btn--quarantine ${qDisabled}" data-action="quarantine">
           <span class="dossier__btn-icon">⚠️</span>
           <span>QUARANTINE${qLeft === 0 ? ' ✖' : ` (${qLeft})`}</span>
-          <span class="dossier__hotkey">${player.id === 'p1' ? '2' : 'NUM2'}</span>
+          <span class="dossier__hotkey">${kQuar}</span>
         </button>
         <button class="dossier__btn dossier__btn--eliminate" data-action="eliminate">
           <span class="dossier__btn-icon">❌</span>
           <span>ELIMINATE</span>
-          <span class="dossier__hotkey">${player.id === 'p1' ? '3' : 'NUM3'}</span>
+          <span class="dossier__hotkey">${kElim}</span>
         </button>
       </div>
       <div class="dossier__stamp" id="stamp-${particle.id}"></div>

@@ -153,14 +153,23 @@ export function drawPlayers(ctx, players) {
   }
 }
 
+function _kLabel(code) {
+  if (code.startsWith('Key'))    return code.slice(3)
+  if (code.startsWith('Digit'))  return code.slice(5)
+  if (code.startsWith('Numpad')) return 'Num ' + code.slice(6)
+  const MAP = { ArrowUp:'↑', ArrowDown:'↓', ArrowLeft:'←', ArrowRight:'→', Enter:'Enter', Backspace:'⌫', Space:'Space' }
+  return MAP[code] || code
+}
+
 export function drawInteractPrompts(ctx, world) {
   for (const p of world.players) {
     if (!p.nearParticleId) continue
     const particle = world.particles.get(p.nearParticleId)
     if (!particle || particle.state !== 'moving') continue
-    const cx    = particle.x + particle.width / 2
-    const ty    = particle.y - 18
-    const label = p.id === 'p1' ? '[E] Inspect' : '[Num0] Inspect'
+    const cx      = particle.x + particle.width / 2
+    const ty      = particle.y - 18
+    const inspKey = world.keybindings?.[p.id]?.inspect ?? 'KeyE'
+    const label   = `[${_kLabel(inspKey)}] Inspect`
     ctx.save()
     ctx.font    = 'bold 13px "Share Tech Mono",monospace'
     ctx.textAlign = 'center'

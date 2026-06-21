@@ -59,9 +59,6 @@ export class BriefingScreen {
   }
 
   _buildThreatsForLevel(level) {
-    // Start with threats defined in this level, plus always include clean
-    const defined = level.threats || []
-    // Also pull in threats from prior levels that are still in the pool
     const all = []
 
     // Always show clean first
@@ -77,7 +74,14 @@ export class BriefingScreen {
       example: '',
     })
 
-    for (const t of defined) { all.push(t) }
+    // Show ALL threat types in this level's pool — search all levels for the definition
+    const nonClean = level.threatTypes.filter(t => t !== 'clean')
+    for (const type of nonClean) {
+      for (const lvl of LEVELS) {
+        const def = lvl.threats?.find(t => t.type === type)
+        if (def) { all.push(def); break }
+      }
+    }
 
     return all
   }
