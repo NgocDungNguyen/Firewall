@@ -12,9 +12,17 @@ export class LeaderboardScreen {
     })
 
     document.getElementById('btn-submit-score')?.addEventListener('click', async () => {
+      const btn  = document.getElementById('btn-submit-score')
       const name = document.getElementById('gameover-name').value.trim().toUpperCase() || 'UNKNOWN'
-      await submitScore(name, this.gs.totalScore, this.gs.level)
-      this.gs.set({ phase: 'leaderboard' })
+      btn.textContent = 'SUBMITTING…'
+      btn.disabled    = true
+      const ok = await submitScore(name, this.gs.totalScore, this.gs.level)
+      if (ok) {
+        this.gs.set({ phase: 'leaderboard' })
+      } else {
+        btn.textContent = '⚠ SUBMIT FAILED — RETRY'
+        btn.disabled    = false
+      }
     })
 
     document.getElementById('btn-gameover-menu')?.addEventListener('click', () => {
