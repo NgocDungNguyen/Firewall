@@ -72,7 +72,7 @@ export class InvestigatorNotebook {
     const el = document.getElementById('notebook-content')
     if (!el) return
     const level       = LEVELS.find(l => l.id === this.gs.level) || LEVELS[0]
-    const knownThreats = ['clean', ...level.threatTypes]
+    const knownThreats = [...new Set(['clean', ...level.threatTypes])]
 
     el.innerHTML = knownThreats.map(key => {
       const info = THREAT_INFO[key]
