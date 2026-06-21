@@ -144,16 +144,15 @@ class Renderer3D {
     const group   = new THREE.Group()
 
     // Translucent panel
-    group.add(Object.assign(
-      new THREE.Mesh(
-        new THREE.BoxGeometry(wWorld, hWorld, 0.45),
-        new THREE.MeshStandardMaterial({
-          color: 0x0a1a2e, emissive: 0x0a2a4e, emissiveIntensity: 0.3,
-          metalness: 0.6, roughness: 0.4, transparent: true, opacity: 0.65,
-        })
-      ),
-      { position: new THREE.Vector3(gX + wWorld / 2, hWorld / 2, cZ) }
-    ))
+    const panel = new THREE.Mesh(
+      new THREE.BoxGeometry(wWorld, hWorld, 0.45),
+      new THREE.MeshStandardMaterial({
+        color: 0x0a1a2e, emissive: 0x0a2a4e, emissiveIntensity: 0.3,
+        metalness: 0.6, roughness: 0.4, transparent: true, opacity: 0.65,
+      })
+    )
+    panel.position.set(gX + wWorld / 2, hWorld / 2, cZ)
+    group.add(panel)
 
     // Glowing frame pieces
     this._gateFrameMat = new THREE.MeshStandardMaterial({
