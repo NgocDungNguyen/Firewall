@@ -36,6 +36,10 @@ export function hideCountdown() {
   document.getElementById('wave-countdown-3d')?.classList.add('wc3d--hidden')
 }
 
+// ── Camera animations (tutorial) ─────────────────────────────────────────────
+export function animateCamera(pos, look, ms) { renderer3D.animateCamera(pos, look, ms) }
+export function resetCamera(ms)              { renderer3D.resetCamera(ms) }
+
 // ── Pause overlay — no-op (notebook/toolbox overlays cover the screen) ────────
 export function drawPauseOverlay() {}
 

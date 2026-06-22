@@ -70,6 +70,8 @@ class Renderer3D {
     this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 500)
     this.camera.position.set(0, 36, 68)
     this.camera.lookAt(0, 2, 0)
+    this._lookAt  = new THREE.Vector3(0, 2, 0)   // tracked separately for animation
+    this._camAnim = null
 
     this._setupLights()
     this._buildEnvironment()
@@ -674,8 +676,35 @@ class Renderer3D {
 
   // ═══════════════════════════════════════════════════ RENDER ════════════════
 
+  // ── Camera animation (used by tutorial) ──────────────────────────────────────
+  animateCamera(toPos, toLook, ms = 1400) {
+    this._camAnim = {
+      fp: this.camera.position.clone(),
+      fl: this._lookAt.clone(),
+      tp: new THREE.Vector3(...toPos),
+      tl: new THREE.Vector3(...toLook),
+      t0: performance.now(), ms,
+    }
+  }
+
+  resetCamera(ms = 1200) {
+    this.animateCamera([0, 36, 68], [0, 2, 0], ms)
+  }
+
+  _tickCamAnim() {
+    const a = this._camAnim
+    if (!a) return
+    const prog = Math.min(1, (performance.now() - a.t0) / a.ms)
+    const ease = 1 - Math.pow(1 - prog, 3)   // ease-out cubic
+    this.camera.position.lerpVectors(a.fp, a.tp, ease)
+    this._lookAt.lerpVectors(a.fl, a.tl, ease)
+    this.camera.lookAt(this._lookAt)
+    if (prog >= 1) this._camAnim = null
+  }
+
   renderFrame() {
     if (!this.renderer || !this.scene || !this.camera) return
+    this._tickCamAnim()
     // Pulse gate
     const t = performance.now() * 0.001
     if (this._gateFrameMat)  this._gateFrameMat.emissiveIntensity = 2.0 + Math.sin(t * 2.5) * 0.65

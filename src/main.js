@@ -1,3 +1,8 @@
+// Fix 100vh on mobile browsers (iOS Safari, Chrome Android address-bar issue)
+const _setVH = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`)
+_setVH()
+window.addEventListener('resize', _setVH)
+
 import { gameState }           from './state/GameState.js'
 import { ScreenRouter }        from './ui/ScreenRouter.js'
 import { MenuScreen }          from './ui/screens/MenuScreen.js'

@@ -1,5 +1,6 @@
 import { LEVELS } from '../../data/levels.js'
 import { SCORING } from '../../game/constants.js'
+import { tutorialOverlay } from '../TutorialOverlay.js'
 
 export class BriefingScreen {
   constructor(gameState, engine) {
@@ -97,8 +98,18 @@ export class BriefingScreen {
   }
 
   _launch() {
+    // Request fullscreen on mobile — this button click is a user gesture
+    const isMobile = ('ontouchstart' in window || navigator.maxTouchPoints > 0) && window.innerWidth < 1200
+    if (isMobile) {
+      const el = document.documentElement
+      if (el.requestFullscreen)             el.requestFullscreen().catch(() => {})
+      else if (el.webkitRequestFullscreen)  el.webkitRequestFullscreen()
+    }
+
     this.gs.resetForNewRound()
     this.gs.set({ phase: 'playing' })
     this.engine.start(this.gs.level, this.gs.playerCount)
+    // Show step-by-step tutorial on first ever play (no-op if already seen)
+    tutorialOverlay.show(this.engine)
   }
 }
